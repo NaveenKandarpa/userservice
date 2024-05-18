@@ -5,6 +5,7 @@ import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -91,10 +92,11 @@ SecurityConfiguration {
 
 //    @Bean
 //    public UserDetailsService userDetailsService() {
+////        Optional<User> optionalUser =
 //        UserDetails userDetails = User.builder()
 //                .username("user")
 //                .password("$2a$12$gBj/r/lJ8goebxJ6Im6D3e96mZMWiHdBlb1Loz3B2QSqBSy4fQ13K")
-//                .roles("USER")
+//                .roles("ADMIN").authorities("ADMIN")
 //                .build();
 //
 //        return new InMemoryUserDetailsManager(userDetails);
