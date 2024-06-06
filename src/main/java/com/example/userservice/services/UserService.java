@@ -1,5 +1,7 @@
 package com.example.userservice.services;
 
+import com.example.userservice.configs.KafkaProducerConfig;
+import com.example.userservice.dtos.SendEmailDto;
 import com.example.userservice.exceptions.InvalidCredentialsException;
 import com.example.userservice.exceptions.TokenNotFoundException;
 import com.example.userservice.exceptions.UserNotFoundException;
@@ -7,7 +9,9 @@ import com.example.userservice.models.Token;
 import com.example.userservice.models.User;
 import com.example.userservice.repositories.TokenRepository;
 import com.example.userservice.repositories.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,13 +26,18 @@ public class UserService {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     private UserRepository userRepository;
     private TokenRepository tokenRepository;
-
+    private KafkaProducerConfig kafkaProducerConfig;
+    private ObjectMapper objectMapper;
     public UserService(BCryptPasswordEncoder bCryptPasswordEncoder,
                        UserRepository userRepository,
-                       TokenRepository tokenRepository) {
+                       TokenRepository tokenRepository,
+                       KafkaProducerConfig kafkaProducerConfig,
+                       ObjectMapper objectMapper) {
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
+        this.kafkaProducerConfig = kafkaProducerConfig;
+        this.objectMapper = objectMapper;
     }
     public User signUp(String name, String email, String password) {
         User user = new User();
@@ -37,8 +46,24 @@ public class UserService {
         user.setHashedPassword(bCryptPasswordEncoder.encode(password));
         user.setEmailVerified(true);
         user.setCreatedAt(new Date());
+
+
         // save the user to database
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        // push the event to Kafka
+        SendEmailDto emailDto = new SendEmailDto();
+        emailDto.setReceiverEmail(user.getEmail());
+        emailDto.setSenderEmail("kandarpanaveen77@gmail.com");
+        emailDto.setSubject("Welcome to Amazon");
+        emailDto.setBody("Thank you for registering at Amazon. Hope you will have a great experience!!");
+        try {
+            kafkaProducerConfig.sendMessage("sendEmail", objectMapper.writeValueAsString(emailDto));
+        }
+        catch(Exception e) {
+            System.out.println("Something went wrong while sending a message to Kafka");
+        }
+        return savedUser;
     }
 
     public Token login(String email, String password) {

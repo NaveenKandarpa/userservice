@@ -24,7 +24,7 @@ public class CustomUserDetails implements UserDetails {
     private boolean credentialsNonExpired;
     private boolean enabled;
     private List<CustomGrantedAuthority> authorities;
-
+    private Long userId;
     public CustomUserDetails() {
 
     }
@@ -44,7 +44,7 @@ public class CustomUserDetails implements UserDetails {
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return authorities;
     }
 
     @Override
@@ -75,5 +75,9 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public Long getUserId() {
+        return userId;
     }
 }

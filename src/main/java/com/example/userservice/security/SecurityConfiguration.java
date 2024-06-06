@@ -75,20 +75,20 @@ SecurityConfiguration {
         return http.build();
     }
 
-    @Bean
-    @Order(2)
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
-            throws Exception {
-        http
-                .authorizeHttpRequests((authorize) -> authorize
-                        .anyRequest().authenticated()
-                )
-                // Form login handles the redirect to the login page from the
-                // authorization server filter chain
-                .formLogin(Customizer.withDefaults());
-
-        return http.build();
-    }
+//    @Bean
+//    @Order(2)
+//    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
+//            throws Exception {
+//        http
+//                .authorizeHttpRequests((authorize) -> authorize
+//                        .anyRequest().permitAll()
+//                )
+//                // Form login handles the redirect to the login page from the
+//                // authorization server filter chain
+//                .formLogin(Customizer.withDefaults());
+//
+//        return http.build();
+//    }
 
 //    @Bean
 //    public UserDetailsService userDetailsService() {
@@ -119,6 +119,7 @@ SecurityConfiguration {
 //                .scope(OidcScopes.OPENID)
 //                .scope(OidcScopes.PROFILE)
 //                .scope("ADMIN")
+//                .scope("Gmail")
 //                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
 //                .build();
 //
@@ -161,6 +162,7 @@ SecurityConfiguration {
         return AuthorizationServerSettings.builder().build();
     }
 
+    // adding custom claims like roles/authorities, userId to the token
     @Bean
     public OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() {
         return (context) -> {
@@ -171,6 +173,9 @@ SecurityConfiguration {
                             .map(c -> c.replaceFirst("^ROLE_", ""))
                             .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
                     claims.put("roles", roles);
+                    // add userId in the token
+                    claims.put("userId", context.getPrincipal().getName());
+//                    claims.put("userId", userId);
                 });
             }
         };
